@@ -1,0 +1,200 @@
+<!doctype html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<script src="html5slider.js"></script>
+<style>
+div {
+    width: 300px;
+    float: left;
+}
+canvas {
+    border: 1px solid red;
+    float: left;
+    margin: 5px;
+}
+#cbike {
+    clear: left;
+}
+</style>
+</head>
+<body>
+
+<div style="color: #ff0000">
+<h1>Current bike</h1>
+<form id="bike1">
+  <p>
+  <select name="name" onchange="redraw()">
+    <option value="cervelos3">Cervelo S3 2011</option>
+    <option value="cervelor3">Cervelo R3 2011</option>
+  </select>
+  <select name="size" onchange="redraw()">
+    <option value="size58">58</option>
+  </select>
+  </p>
+  <p><label>Stem angle <input type="range" min=-17 max=-6 name="stem_angle" value=-6 onchange="redraw()"></label><span></span></p>
+  <p><label>Stem length <input type="range" min=110 max=150 step=10 name="stem_length" value=110 onchange="redraw()"></label><span></span></p>
+  <p><label>Spacer length <input type="range" min=0 max=20 name="spacer_length" value=0 onchange="redraw()"></label><span></span></p>
+</form>
+</div>
+
+<div>
+<h1>New bike</h1>
+<form id="bike2">
+  <p>
+  <select name="name" onchange="redraw()">
+    <option value="cervelos3">Cervelo S3 2011</option>
+    <option value="cervelor3">Cervelo R3 2011</option>
+  </select>
+  <select name="size" onchange="redraw()">
+    <option value="size58">58</option>
+  </select>
+  </p>
+  <p><label>Stem angle <input type="range" min=-17 max=-6 name="stem_angle" value=-6 onchange="redraw()"></label><span></span></p>
+  <p><label>Stem length <input type="range" min=110 max=150 step=10 name="stem_length" value=110 onchange="redraw()"></label><span></span></p>
+  <p><label>Spacer length <input type="range" min=0 max=20 name="spacer_length" value=0 onchange="redraw()"></label><span></span></p>
+</form>
+</div>
+
+
+<canvas width=300 height=300 id="cbike"></canvas>
+<canvas width=300 height=300 id="cbars"></canvas>
+<script>
+var bikes = {
+    cervelor3: {
+        size58: {
+            wheel_size: 700, head_tube_angle: 73.5, bb_drop: 68, 
+            top_tube_length: 581, head_tube_length: 199, front_center: 604, 
+            rear_center: 405, stand_over_height: 815, stack: 605, reach: 396,
+            crown_length: 10, seat_tube_angle: 73
+        }
+    },
+    cervelos3: {
+        size58: {
+            wheel_size: 700, head_tube_angle: 73, bb_drop: 68, 
+            top_tube_length: 549, head_tube_length: 180, front_center: 608, 
+            rear_center: 399, stand_over_height: 781, stack: 580, reach: 403,
+            crown_length: 10, seat_tube_angle: 73
+        }
+    }
+}
+function getlines(data) {
+    var Bx = 130, By = 270, B = [Bx,By];
+    var Ax = Bx - data.lengths.AM, Ay = By - data.lengths.BM, A = [Ax,Ay];
+    var Mx = Bx, My = By - data.lengths.BM, M = [Mx,My];
+    var Ex = Mx - data.lengths.LE, Ey = My - data.lengths.LM, E = [Ex,Ey];
+    var Lx = Bx, Ly = By - data.lengths.BL, L = [Lx,Ly];
+    var Fx = Lx + data.lengths.LF, Fy = Ey, F = [Fx,Fy];
+    var Cx = Fx + data.lengths.NC, Cy = Fy + data.lengths.NF, C = [Cx,Cy];
+    var Gx = Fx - data.lengths.FP, Gy = Fy - data.lengths.GP, G = [Gx,Gy];
+    var Jx = Gx + data.lengths.GJ, Jy = Gy, J = [Jx,Jy];
+    var Hx = Jx, Hy = Jy - data.lengths.HJ, H = [Hx,Hy];
+    console.log(By, data.lengths.LE, My);
+    console.log(B, M, E);
+    return [
+        [B,A], [A,E], [B,E], [E,F], [F,C], [C,B], [F,G], [G,H]
+    ]
+}
+function bikedesctoabc(bike, scale_factor) {
+    var data = {
+        angles: {
+            FCN: bike.head_tube_angle,
+            IGH: bike.stem_angle,
+            LBF: Math.atan(bike.reach / bike.stack) * 180 / 3.141592653589793,
+            AME: bike.seat_tube_angle,
+            MEL: 90 - bike.seat_tube_angle,
+            IGH: -bike.stem_angle,
+            HGJ: 90 - (-bike.stem_angle) - bike.head_tube_angle
+        },
+        lengths: {
+            AB: bike.rear_center,
+            CF: bike.head_tube_length,
+            FG: bike.spacer_length + bike.crown_length,
+            EF: bike.top_tube_length,
+            BM: bike.bb_drop,
+            LM: bike.stack - bike.bb_drop,
+            LE: bike.top_tube_length - bike.reach,
+            BL: bike.stack,
+            LF: bike.reach,
+            HG: bike.stem_length
+        }
+    };
+    data.angles.ABM = Math.acos(data.lengths.BM / data.lengths.AB) * 180 / 3.141592653589793;
+    data.lengths.AM = data.lengths.AB * Math.sin(data.angles.ABM * 3.141592653589793 / 180);
+    data.lengths.NF = data.lengths.CF * Math.sin(data.angles.FCN * 3.141592653589793 / 180);
+    data.lengths.NC = data.lengths.CF * Math.cos(data.angles.FCN * 3.141592653589793 / 180);
+    data.lengths.GP = data.lengths.FG * Math.sin(data.angles.FCN * 3.141592653589793 / 180);
+    data.lengths.FP = data.lengths.FG * Math.cos(data.angles.FCN * 3.141592653589793 / 180);
+    data.lengths.GJ = data.lengths.HG * Math.cos(data.angles.HGJ * 3.141592653589793 / 180);
+    data.lengths.HJ = data.lengths.HG * Math.sin(data.angles.HGJ * 3.141592653589793 / 180);
+
+    for (k in data.lengths) { data.lengths[k] = data.lengths[k] / scale_factor; }
+    return data;
+}
+/*
+                         G         I
+                          \-------- H
+                  L        \         J
+          E ------|------P-- F
+           / \    |         \
+          /   \   |     K/---\ C
+         /     \ M| /----  N  \
+       A -------\-|-           \ D
+                 \O
+                  B
+*/
+function draw(bike, style, clear) {
+    lines = getlines(bikedesctoabc(bike, 3.3));
+    lines_large = getlines(bikedesctoabc(bike, 0.8));
+    
+    // draw the bike
+    var cbike = document.querySelector("#cbike");
+    var ctxbike = cbike.getContext("2d");
+    if (clear) cbike.width = cbike.width; // clear canvas
+    ctxbike.lineWidth = 2;
+    ctxbike.strokeStyle = style;
+    ctxbike.beginPath();
+    for (var i=0; i<lines.length; i++) {
+        ctxbike.moveTo(lines[i][0][0], lines[i][0][1]);
+        ctxbike.lineTo(lines[i][1][0], lines[i][1][1]);
+    }
+    ctxbike.stroke();
+
+    // draw the bars, relies on the last two coord sets being F,G and G,H
+    var cbike = document.querySelector("#cbars");
+    var ctxbike = cbike.getContext("2d");
+    if (clear) cbike.width = cbike.width; // clear canvas
+    ctxbike.lineWidth = 2;
+    ctxbike.strokeStyle = style;
+    ctxbike.beginPath();
+    for (var i=0; i<lines.length; i++) {
+        ctxbike.moveTo(lines_large[i][0][0] - 550, lines_large[i][0][1] + 600);
+        ctxbike.lineTo(lines_large[i][1][0] - 550, lines_large[i][1][1] + 600);
+    }
+    ctxbike.stroke();
+}
+
+function augment(bike, elements) {
+    var ret = {};
+    for (k in bike) {
+        ret[k] = bike[k];
+    }
+    for (var i=0; i<elements.length; i++) {
+        ret[elements[i].name] = parseInt(elements[i].value, 10);
+        var spans = elements[i].parentNode.parentNode.getElementsByTagName("span");
+        if (spans.length > 0 && elements[i].nodeName.toLowerCase() != "select") {
+            spans[0].innerHTML = elements[i].value;
+        }
+    }
+    return ret;
+}
+
+function redraw() {
+    var fbike1 = document.getElementById("bike1");
+    var fbike2 = document.getElementById("bike2");
+    draw(augment(bikes[fbike1.elements.name.value][fbike1.elements.size.value], fbike1.elements), "#ff0000", true);
+    draw(augment(bikes[fbike2.elements.name.value][fbike2.elements.size.value], fbike2.elements), "#000000", false);
+}
+
+redraw();
+</script>
