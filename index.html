@@ -45,6 +45,8 @@ canvas {
   <select name="name" onchange="redraw()">
     <option value="cervelos3">Cervelo S3 2011</option>
     <option value="cervelor3">Cervelo R3 2011</option>
+    <option value="boardmaneliteair98">Boardman Elite Air 9.8 2014</option>
+    <option value="custom">Custom (below)</option>
   </select>
   <select name="size" onchange="redraw()">
     <option value="size58">58</option>
@@ -53,6 +55,9 @@ canvas {
   <p><label>Stem angle <input type="range" min=-17 max=-6 name="stem_angle" value=-6 onchange="redraw()"></label><span></span></p>
   <p><label>Stem length <input type="range" min=110 max=150 step=10 name="stem_length" value=110 onchange="redraw()"></label><span></span></p>
   <p><label>Spacer length <input type="range" min=0 max=20 name="spacer_length" value=0 onchange="redraw()"></label><span></span></p>
+
+  <fieldset id="custom" style="display:none"><legend>Custom</legend></fieldset>
+
 </form>
 </div>
 
@@ -72,12 +77,45 @@ var bikes = {
     cervelos3: {
         size58: {
             wheel_size: 700, head_tube_angle: 73, bb_drop: 68, 
-            top_tube_length: 549, head_tube_length: 180, front_center: 608, 
+            top_tube_length: 580, head_tube_length: 180, front_center: 608, 
             rear_center: 399, stand_over_height: 781, stack: 580, reach: 403,
             crown_length: 10, seat_tube_angle: 73
         }
-    }
+    },
+    custom: {
+        size58: {
+            wheel_size: 700, head_tube_angle: 73, bb_drop: 68, 
+            top_tube_length: 570, head_tube_length: 170, front_center: 608, 
+            rear_center: 405, stand_over_height: 781, stack: 572, reach: 396,
+            crown_length: 10, seat_tube_angle: 73
+        }
+    },
+    boardmaneliteair98: {
+        size58: {
+            wheel_size: 700, head_tube_angle: 73, bb_drop: 68, 
+            top_tube_length: 570, head_tube_length: 170, front_center: 608, 
+            rear_center: 405, stand_over_height: 781, stack: 572, reach: 396,
+            crown_length: 10, seat_tube_angle: 73
+        }
+    },
+};
+
+// create custom form
+for (var k in bikes.custom.size58) {
+    var inp = document.createElement("input");
+    inp.type = "number";
+    inp.name = "custom__" + k;
+    inp.setAttribute("actual_name", k);
+    inp.value = bikes.custom.size58[k];
+    var lbl = document.createElement("label");
+    lbl.appendChild(document.createTextNode(k + ": "));
+    lbl.appendChild(inp);
+    var p = document.createElement("p");
+    p.appendChild(lbl);
+    document.getElementById("custom").appendChild(p);
+    inp.oninput = function() { bikes.custom.size58[this.getAttribute("actual_name")] = this.value; redraw(); };
 }
+
 function getlines(data) {
     var Bx = 130, By = 270, B = [Bx,By];
     var Ax = Bx - data.lengths.AM, Ay = By - data.lengths.BM, A = [Ax,Ay];
@@ -89,8 +127,8 @@ function getlines(data) {
     var Gx = Fx - data.lengths.FP, Gy = Fy - data.lengths.GP, G = [Gx,Gy];
     var Jx = Gx + data.lengths.GJ, Jy = Gy, J = [Jx,Jy];
     var Hx = Jx, Hy = Jy - data.lengths.HJ, H = [Hx,Hy];
-    console.log(By, data.lengths.LE, My);
-    console.log(B, M, E);
+    //console.log(By, data.lengths.LE, My);
+    //console.log(B, M, E);
     return [
         [B,A], [A,E], [B,E], [E,F], [F,C], [C,B], [F,G], [G,H]
     ]
@@ -182,7 +220,7 @@ function augment(bike, elements) {
     for (var i=0; i<elements.length; i++) {
         ret[elements[i].name] = parseInt(elements[i].value, 10);
         var spans = elements[i].parentNode.parentNode.getElementsByTagName("span");
-        if (spans.length > 0 && elements[i].nodeName.toLowerCase() != "select") {
+        if (spans.length > 0 && elements[i].type == "range") {
             spans[0].innerHTML = elements[i].value;
         }
     }
@@ -194,6 +232,11 @@ function redraw() {
     var fbike2 = document.getElementById("bike2");
     draw(augment(bikes[fbike1.elements.name.value][fbike1.elements.size.value], fbike1.elements), "#ff0000", true);
     draw(augment(bikes[fbike2.elements.name.value][fbike2.elements.size.value], fbike2.elements), "#000000", false);
+    if (fbike2.elements.name.value == "custom") {
+        document.getElementById("custom").style.display = "block";
+    } else {
+        document.getElementById("custom").style.display = "none";
+    }
 }
 
 redraw();
