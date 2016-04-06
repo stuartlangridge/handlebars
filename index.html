@@ -27,6 +27,9 @@ canvas {
   <select name="name" onchange="redraw()">
     <option value="cervelos3">Cervelo S3 2011</option>
     <option value="cervelor3">Cervelo R3 2011</option>
+    <option value="boardmaneliteair98">Boardman Elite Air 9.8 2014</option>
+    <option value="genesisdatum">Genesis Datum</option>
+    <option value="canyonaeroad">Canyon Aeroad</option>
   </select>
   <select name="size" onchange="redraw()">
     <option value="size58">58</option>
@@ -46,6 +49,8 @@ canvas {
     <option value="cervelos3">Cervelo S3 2011</option>
     <option value="cervelor3">Cervelo R3 2011</option>
     <option value="boardmaneliteair98">Boardman Elite Air 9.8 2014</option>
+    <option value="genesisdatum">Genesis Datum</option>
+    <option value="canyonaeroad">Canyon Aeroad</option>
     <option value="custom">Custom (below)</option>
   </select>
   <select name="size" onchange="redraw()">
@@ -98,6 +103,22 @@ var bikes = {
             crown_length: 10, seat_tube_angle: 73
         }
     },
+    genesisdatum: {
+        size58: {
+            wheel_size: 700, head_tube_angle: 72, bb_drop: 72, 
+            top_tube_length: 595, head_tube_length: 195, front_center: 608, 
+            rear_center: 399, stand_over_height: 781, stack: 621, reach: 405,
+            crown_length: 10, seat_tube_angle: 73
+        }
+    },
+    canyonaeroad: {
+        size58: {
+            wheel_size: 700, head_tube_angle: 73.5, bb_drop: 68, 
+            top_tube_length: 592, head_tube_length: 190, front_center: 608, 
+            rear_center: 399, stand_over_height: 781, stack: 592, reach: 423,
+            crown_length: 10, seat_tube_angle: 73.5
+        }
+    }
 };
 
 // create custom form
